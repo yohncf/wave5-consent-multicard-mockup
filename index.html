@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wave 5 — Multi-Card Consent Interrupt Mockup</title>
+<style>
+  :root{
+    --ol-blue:#0f6cbd; --ol-blue-hover:#115ea3; --ink:#242424; --sub:#616161;
+    --line:#e1dfdd; --bg:#faf9f8; --rail:#f3f2f1;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:#edebe9;color:var(--ink);}
+  .page{max-width:1240px;margin:0 auto;padding:22px 18px 60px;}
+  h1{font-size:22px;margin:0 0 4px;}
+  .lede{color:#484644;font-size:14px;margin:0 0 18px;max-width:820px;line-height:1.5;}
+  .controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
+  .seg{display:inline-flex;border:1px solid #c8c6c4;border-radius:8px;overflow:hidden;}
+  .seg button{border:0;background:#fff;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer;color:#3b3a39;}
+  .seg button.active{background:var(--ol-blue);color:#fff;}
+  .seg button+button{border-left:1px solid #c8c6c4;}
+  .hint{font-size:12px;color:#605e5c;}
+  .btn-reset{border:1px solid #c8c6c4;background:#fff;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:600;}
+  .btn-reset:hover{background:#f3f2f1;}
+
+  /* ---- Outlook shell ---- */
+  .shell{position:relative;border:1px solid #d2d0ce;border-radius:8px;overflow:hidden;
+    box-shadow:0 8px 30px rgba(0,0,0,.14);height:660px;background:var(--bg);}
+  .titlebar{height:44px;background:#faf9f8;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:0 14px;}
+  .ol-logo{display:flex;align-items:center;gap:8px;font-weight:600;color:#0f6cbd;font-size:15px;}
+  .ol-logo .sq{width:20px;height:20px;border-radius:4px;background:linear-gradient(135deg,#28a8ea,#0f6cbd);display:inline-block;}
+  .search{flex:0 0 420px;height:28px;background:#eaeaea;border-radius:6px;display:flex;align-items:center;padding:0 12px;color:#797775;font-size:12px;}
+  .titlebar .spacer{flex:1;}
+  .win-dots{display:flex;gap:16px;color:#8a8886;font-size:13px;}
+  .ribbon{height:40px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:0 12px;font-size:12.5px;color:#3b3a39;overflow:hidden;}
+  .ribbon .pill{padding:6px 10px;border-radius:5px;white-space:nowrap;}
+  .ribbon .pill.primary{background:#eff6fc;color:#0f6cbd;font-weight:600;}
+  .ribbon .sep{width:1px;height:20px;background:var(--line);margin:0 4px;}
+  .body{display:flex;height:calc(660px - 44px - 40px);}
+  .rail{width:44px;background:var(--rail);border-right:1px solid var(--line);display:flex;flex-direction:column;align-items:center;padding-top:10px;gap:16px;}
+  .rail .ic{width:22px;height:22px;border-radius:5px;background:#d0cfce;}
+  .rail .ic.on{background:#0f6cbd;}
+  .folders{width:200px;background:#f7f6f5;border-right:1px solid var(--line);padding:12px 10px;font-size:12.5px;color:#3b3a39;}
+  .folders .grp{font-weight:700;color:#605e5c;margin:12px 4px 6px;font-size:11px;text-transform:uppercase;letter-spacing:.4px;}
+  .folders .f{display:flex;justify-content:space-between;padding:5px 8px;border-radius:5px;}
+  .folders .f.sel{background:#eaf3fb;color:#0f6cbd;font-weight:600;}
+  .folders .f .n{color:#8a8886;}
+  .list{width:300px;border-right:1px solid var(--line);background:#fff;overflow:hidden;}
+  .list .lhead{display:flex;gap:16px;padding:10px 14px;font-size:13px;border-bottom:1px solid var(--line);}
+  .list .lhead .a{font-weight:700;color:#0f6cbd;border-bottom:2px solid #0f6cbd;padding-bottom:6px;}
+  .list .lhead .b{color:#605e5c;}
+  .msg{padding:9px 14px;border-bottom:1px solid #f3f2f1;}
+  .msg .top{display:flex;justify-content:space-between;}
+  .msg .from{font-weight:600;font-size:13px;color:#201f1e;}
+  .msg .time{font-size:11px;color:#8a8886;}
+  .msg .subj{font-size:12.5px;color:#0f6cbd;margin:2px 0 1px;}
+  .msg .prev{font-size:12px;color:#797775;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .msg.unread{border-left:3px solid #0f6cbd;padding-left:11px;}
+  .reading{flex:1;background:#fff;padding:18px 24px;overflow:hidden;}
+  .reading h2{font-size:19px;margin:0 0 14px;color:#201f1e;}
+  .reading .rline{height:11px;background:#f0efee;border-radius:4px;margin:9px 0;}
+  .reading .rline.s{width:70%;} .reading .rline.m{width:88%;}
+
+  /* ---- Scrim + dialog ---- */
+  .scrim{position:absolute;inset:0;background:rgba(20,25,30,.45);display:flex;align-items:center;justify-content:center;}
+  .dialog{width:452px;background:#fff;border-radius:8px;box-shadow:0 12px 40px rgba(0,0,0,.32);
+    padding:28px 30px 20px;animation:pop .18s ease;}
+  @keyframes pop{from{transform:scale(.96);opacity:.4}to{transform:scale(1);opacity:1}}
+  .dialog h3{font-size:21px;font-weight:600;margin:0 0 14px;color:#201f1e;line-height:1.25;}
+  .illus{display:flex;justify-content:center;margin:2px 0 18px;}
+  .dbody{font-size:14px;line-height:1.55;color:#3b3a39;min-height:96px;}
+  .dbody .learn{color:#0f6cbd;text-decoration:none;}
+  .dbody .learn:hover{text-decoration:underline;}
+  .dots{display:flex;gap:7px;margin:18px 0 14px;}
+  .dots i{width:7px;height:7px;border-radius:50%;background:#c8c6c4;display:block;transition:.2s;}
+  .dots i.on{background:#0f6cbd;width:20px;border-radius:4px;}
+  .actions{display:flex;align-items:center;margin-top:6px;}
+  .actions .spacer{flex:1;}
+  .btn{border-radius:5px;font-size:14px;font-weight:600;cursor:pointer;padding:9px 22px;font-family:inherit;}
+  .btn-primary{background:var(--ol-blue);color:#fff;border:1px solid var(--ol-blue);}
+  .btn-primary:hover{background:var(--ol-blue-hover);border-color:var(--ol-blue-hover);}
+  .btn-ghost{background:transparent;border:1px solid transparent;color:#3b3a39;padding:9px 14px;}
+  .btn-ghost:hover{background:#f0f0f0;}
+
+  .storyboard{margin-top:34px;}
+  .storyboard h2{font-size:16px;margin:0 0 4px;}
+  .sb-sub{font-size:13px;color:#605e5c;margin:0 0 16px;}
+  .sb-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:26px;}
+  .sb-card{border:1px solid #e1dfdd;border-radius:8px;background:#fff;padding:18px 18px 14px;box-shadow:0 2px 8px rgba(0,0,0,.05);}
+  .sb-tag{font-size:11px;font-weight:700;color:#0f6cbd;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;}
+  .sb-card h4{font-size:16px;margin:0 0 10px;color:#201f1e;}
+  .sb-card p{font-size:13px;line-height:1.5;color:#3b3a39;margin:0 0 14px;min-height:78px;}
+  .sb-btns{display:flex;align-items:center;border-top:1px solid #f0efee;padding-top:12px;}
+  .sb-btns .sp{flex:1;}
+  .mini{font-size:12.5px;font-weight:600;border-radius:5px;padding:7px 16px;}
+  .mini.primary{background:var(--ol-blue);color:#fff;}
+  .mini.ghost{color:#3b3a39;}
+  .iter-title{font-size:14px;font-weight:700;margin:22px 0 10px;color:#201f1e;}
+  .iter-title span{font-weight:500;color:#605e5c;}
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Wave 5 — Multi-Card Consent Interrupt</h1>
+  <p class="lede">Reworks the single-card personalization consent prompt into a 3-card click-through: <b>Card 1</b> benefit hook → <b>Continue</b>, <b>Card 2</b> how-it-works + trust → <b>Continue</b>, <b>Card 3</b> the ask → <b>Not now</b> (left) / <b>OK</b> (right). Two iterations sourced from rows of the “Wave 5” sheet of <i>Consent Experimentation Matrix.xlsx</i>.</p>
+
+  <div class="controls">
+    <div class="seg" id="iterSeg">
+      <button data-i="0" class="active">Iteration 1 · W5.1 (Outlook)</button>
+      <button data-i="1">Iteration 2 · W5.4 (Microsoft ecosystem)</button>
+    </div>
+    <button class="btn-reset" id="restart">↺ Replay from Card 1</button>
+    <span class="hint">Click <b>Continue / OK / Not now</b> inside the dialog to move through the flow.</span>
+  </div>
+
+  <!-- Interactive Outlook shell -->
+  <div class="shell">
+    <div class="titlebar">
+      <div class="ol-logo"><span class="sq"></span>Outlook</div>
+      <div class="search">🔍 Search</div>
+      <div class="spacer"></div>
+      <div class="win-dots">⚙&nbsp;&nbsp;&nbsp;—&nbsp;&nbsp;▢&nbsp;&nbsp;✕</div>
+    </div>
+    <div class="ribbon">
+      <span class="pill primary">✉ New mail</span><span class="sep"></span>
+      <span class="pill">🗑 Delete</span><span class="pill">📥 Archive</span><span class="pill">⚑ Report</span>
+      <span class="pill">🧹 Sweep</span><span class="pill">📁 Move to</span><span class="sep"></span>
+      <span class="pill">↩ Reply</span><span class="pill">↪ Forward</span><span class="sep"></span>
+      <span class="pill">⚡ Quick Steps</span><span class="pill">✔ Read / Unread</span>
+    </div>
+    <div class="body">
+      <div class="rail"><div class="ic on"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div><div class="ic"></div></div>
+      <div class="folders">
+        <div class="grp">Favorites</div>
+        <div class="f sel"><span>Inbox</span><span class="n">11</span></div>
+        <div class="f"><span>Expenses</span><span class="n">11</span></div>
+        <div class="grp">j.vanburen@contoso.com</div>
+        <div class="f"><span>Inbox</span></div>
+        <div class="f"><span>Drafts</span></div>
+        <div class="f"><span>Sent Items</span></div>
+        <div class="f"><span>Deleted Items</span></div>
+        <div class="f"><span>Junk Email</span></div>
+        <div class="f"><span>Archive</span></div>
+      </div>
+      <div class="list">
+        <div class="lhead"><span class="a">Focused</span><span class="b">Other</span></div>
+        <div class="msg unread"><div class="top"><span class="from">Serena Davis</span><span class="time">9:58 AM</span></div><div class="subj">Upcoming EHR System Update</div><div class="prev">Hello Joshua, How will this…</div></div>
+        <div class="msg"><div class="top"><span class="from">Daichi Fukuda</span><span class="time">9:40 AM</span></div><div class="subj">Hardware Shipment for EHR</div><div class="prev">Josh, The servers for the…</div></div>
+        <div class="msg"><div class="top"><span class="from">Isaac Fielder</span><span class="time">9:02 AM</span></div><div class="subj">Feedback from Physicians</div><div class="prev">Here are the results of the…</div></div>
+        <div class="msg"><div class="top"><span class="from">Kadji Bell</span><span class="time">8:47 AM</span></div><div class="subj">Integration Test Results</div><div class="prev">Josh, Testing shows minor…</div></div>
+        <div class="msg"><div class="top"><span class="from">Kristin Patterson</span><span class="time">8:31 AM</span></div><div class="subj">HIPAA Training of new staff</div><div class="prev">Josh and Isaac, we had a…</div></div>
+        <div class="msg"><div class="top"><span class="from">Robin Counts</span><span class="time">8:33 AM</span></div><div class="subj">Shift Coverage for Holiday</div><div class="prev">Josh, We need to finalize…</div></div>
+      </div>
+      <div class="reading">
+        <h2>Planning vacation to Hawaii</h2>
+        <div class="rline m"></div><div class="rline"></div><div class="rline s"></div>
+        <div class="rline m"></div><div class="rline"></div>
+      </div>
+    </div>
+
+    <!-- Consent dialog -->
+    <div class="scrim" id="scrim">
+      <div class="dialog">
+        <h3 id="dTitle"></h3>
+        <div class="illus">
+          <svg width="150" height="96" viewBox="0 0 150 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="30" y="20" width="34" height="44" rx="4" fill="#fbe7b2"/>
+            <rect x="30" y="20" width="34" height="11" rx="4" fill="#f2c14e"/>
+            <path d="M96 30 L118 30 L112 58 L90 58 Z" fill="#7fd1c4"/>
+            <path d="M96 30 L118 30 L110 40 L100 40 Z" fill="#a7e3d8"/>
+            <circle cx="75" cy="52" r="27" fill="#1a7fd4"/>
+            <circle cx="75" cy="44" r="9" fill="#eaf4fc"/>
+            <path d="M60 70 a15 13 0 0 1 30 0 Z" fill="#eaf4fc"/>
+            <circle cx="118" cy="24" r="6" fill="#cfe6f7"/>
+            <circle cx="40" cy="70" r="4" fill="#dfeefb"/>
+          </svg>
+        </div>
+        <div class="dbody" id="dBody"></div>
+        <div class="dots" id="dDots"><i class="on"></i><i></i><i></i></div>
+        <div class="actions" id="dActions"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Static storyboard -->
+  <div class="storyboard">
+    <h2>Storyboard — both iterations, all three cards</h2>
+    <p class="sb-sub">Print / screenshot-friendly view of the full sequence for each iteration.</p>
+    <div id="sbMount"></div>
+  </div>
+</div>
+
+<script>
+const ITER = [
+  {
+    id:"W5.1", name:"Tailored to you (Outlook-scoped)",
+    title:"Tailored to you",
+    body:[
+      "Get offers and recommendations you'll actually want — deals, products, and content that match what you care about, right inside Outlook.",
+      "Here's how: Microsoft uses the emails you already get from brands and businesses to learn what's relevant to you. No one reads your emails, and nothing is shared outside Microsoft.",
+      "Turn on personalization to start seeing recommendations made just for you. You're in control — manage this in settings anytime."
+    ],
+    cta:"OK", decline:"Not now"
+  },
+  {
+    id:"W5.4", name:"Recommendations that follow what you like (Microsoft ecosystem)",
+    title:"Recommendations that follow what you like",
+    body:[
+      "When you find what's relevant to you, it shouldn't stop at your inbox. Get offers and recommendations that fit you — in Outlook and in the other Microsoft apps you already use.",
+      "Here's how: Microsoft uses the emails you get from brands and businesses to learn what you care about, so more of your day feels made for you. No one reads your emails, and nothing is shared outside Microsoft.",
+      "Turn it on to get recommendations made just for you, in more of the places you spend time. You're in control — manage this in settings anytime."
+    ],
+    cta:"OK", decline:"Not now"
+  }
+];
+
+let curIter = 0, curCard = 0;
+const dTitle=document.getElementById('dTitle'), dBody=document.getElementById('dBody'),
+      dDots=document.getElementById('dDots'), dActions=document.getElementById('dActions'),
+      scrim=document.getElementById('scrim');
+
+function bodyHtml(it, card){
+  let t = it.body[card];
+  if(card===2){ t += ' <a class="learn" href="#" onclick="return false;">Learn more</a>'; }
+  return t;
+}
+function render(){
+  const it = ITER[curIter];
+  dTitle.textContent = it.title;
+  dBody.innerHTML = bodyHtml(it, curCard);
+  [...dDots.children].forEach((d,i)=>d.classList.toggle('on', i===curCard));
+  dActions.innerHTML='';
+  if(curCard < 2){
+    const b=document.createElement('button'); b.className='btn btn-primary'; b.textContent='Continue';
+    b.onclick=()=>{curCard++;render();};
+    const sp=document.createElement('div'); sp.className='spacer';
+    dActions.append(sp,b);
+  } else {
+    const decline=document.createElement('button'); decline.className='btn btn-ghost'; decline.textContent=it.decline;
+    decline.onclick=()=>finish('declined');
+    const sp=document.createElement('div'); sp.className='spacer';
+    const ok=document.createElement('button'); ok.className='btn btn-primary'; ok.textContent=it.cta;
+    ok.onclick=()=>finish('accepted');
+    dActions.append(decline,sp,ok);
+  }
+}
+function finish(state){
+  scrim.style.transition='opacity .25s'; scrim.style.opacity='0';
+  setTimeout(()=>{ scrim.style.display='none'; }, 250);
+  setTimeout(()=>{
+    curCard=0; scrim.style.display='flex'; scrim.style.opacity='1'; render();
+  }, 1100);
+}
+document.querySelectorAll('#iterSeg button').forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll('#iterSeg button').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active'); curIter=+btn.dataset.i; curCard=0;
+    scrim.style.display='flex'; scrim.style.opacity='1'; render();
+  };
+});
+document.getElementById('restart').onclick=()=>{curCard=0; scrim.style.display='flex'; scrim.style.opacity='1'; render();};
+
+// storyboard
+function buildStoryboard(){
+  const mount=document.getElementById('sbMount');
+  ITER.forEach(it=>{
+    const title=document.createElement('div'); title.className='iter-title';
+    title.innerHTML = it.id+' — '+it.title+' <span>('+it.name+')</span>';
+    const row=document.createElement('div'); row.className='sb-row';
+    it.body.forEach((txt,i)=>{
+      const card=document.createElement('div'); card.className='sb-card';
+      let btns;
+      if(i<2){ btns='<div class="sp"></div><span class="mini primary">Continue</span>'; }
+      else { btns='<span class="mini ghost">'+it.decline+'</span><div class="sp"></div><span class="mini primary">'+it.cta+'</span>'; }
+      const learn = i===2 ? ' <a class="learn" style="color:#0f6cbd" href="#" onclick="return false;">Learn more</a>' : '';
+      card.innerHTML='<div class="sb-tag">Card '+(i+1)+' · '+['Benefit hook','How it works + trust','The ask'][i]+'</div>'
+        + (i===0 ? '<h4>'+it.title+'</h4>' : '<h4 style="visibility:hidden">'+it.title+'</h4>')
+        + '<p>'+txt+learn+'</p><div class="sb-btns">'+btns+'</div>';
+      row.appendChild(card);
+    });
+    mount.append(title,row);
+  });
+}
+buildStoryboard();
+render();
+</script>
+</body>
+</html>
